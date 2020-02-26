@@ -648,16 +648,7 @@ sub _tabbar_layout {
 	my ($root) = @_;
 
 	my $ncol = $root->ncol;
-	my $new_button = '';
-	if ($root->{new_button}) {
-		if ($ncol >= 60) {
-			$new_button = '[NEW]';
-		} elsif ($ncol >= 30) {
-			$new_button = 'NEW';
-		} elsif ($ncol >= 13) {
-			$new_button = '+';
-		}
-	}
+	my $new_button = $root->{new_button} || '';
 	$ncol -= !!$new_button + length $new_button;
 
 	my $max = int(($ncol - 1) / 3) - 3;
@@ -668,7 +659,7 @@ sub _tabbar_layout {
 		if ($tab == $root->{cur}) {
 			$cur_idx = $_;
 		}
-		my $name      = $tab->{name} || '' . ($_ + 1);
+		my $name      = $tab->{name} || $root->{tab_name_default}($_);
 		my $length    = length $name;
 		$total_full      += 3 + $length;
 		$total_truncated += 3 + ($length < $max ? $length : $max);
@@ -1060,12 +1051,22 @@ sub init {
    $root->{timeouts} = $root->parse_timeouts($rs->text(
       'tabbar-timeouts', '0:▁:3:▂:6:▃:9:▄:12:▅:15:▆:18:▇:21:█'));
    $root->{bell_timeout}     = $rs->text('bell-timeout', 1) + 0;
-   $root->{new_button}       = $rs->bool('new-button', 0);
+   $root->{new_button}       = $rs->text('new-button', '');
    $root->{tab_title}        = $rs->bool('title', 1);
    $root->{autohide}         = $rs->bool('autohide', 1);
    $root->{register_keysyms} = !$rs->bool('no-tabbedex-keys', 0);
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
+   $root->{tab_name_start}   = $rs->text('tab-name-start', 1);
+
+   $root->{tab_name_default} = $_
+	? do{
+	  sub baseX($@){$_[0]>0?baseX(int($_[0]/$#_),@_[1..$#_]).$_[$_[0]%$#_+1]:''}
+	  my @symbs = split //, $_;
+	  sub{ baseX($_[0] + $root->{tab_name_start}, @symbs) || $symbs[0] };
+	}
+	: sub{$_[0] + $root->{tab_name_start}}
+   for $rs->text('tab-name-symbols', '');
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
