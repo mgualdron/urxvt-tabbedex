@@ -1068,7 +1068,7 @@ sub init {
    $root->{register_keysyms} = !$rs->bool('no-tabbedex-keys', 0);
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
-   $root->{prev_active_tab}  = 1;
+   $root->{prev_active_tab}  = 0; # Set this to the first tab on init.
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
