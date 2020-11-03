@@ -471,6 +471,7 @@ sub register_keysyms {
 	$self->parse_keysym('Shift-Right', $prefix . ':next_tab');
 	$self->parse_keysym('Shift-Down', $prefix . ':new_tab');
 	$self->parse_keysym('Shift-Up', $prefix . ':rename_tab');
+	$self->parse_keysym('Meta-Left', $prefix . ':prev_active_tab');
 	$self->parse_keysym('Control-Left', $prefix . ':move_tab_left');
 	$self->parse_keysym('Control-Right', $prefix . ':move_tab_right');
 	for my $num (1..12) {
@@ -919,6 +920,7 @@ sub make_current {
 		if ($cur->is_being_renamed) {
 			return;
 		}
+        $root->{prev_active_tab} = $cur;
 		delete $cur->{last_activity};
 		$cur->{bell_ends} = 0;
 		$cur->XUnmapWindow ($cur->parent) if $cur->mapped;
@@ -1066,6 +1068,7 @@ sub init {
    $root->{register_keysyms} = !$rs->bool('no-tabbedex-keys', 0);
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
+   $root->{prev_active_tab}  = 1;
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
@@ -1243,6 +1246,8 @@ sub tab_action {
 		$root->make_current(($tab->index + 1) % @{ $root->{tabs} });
 	} elsif ($cmd eq 'prev_tab') {
 		$root->make_current($tab->index - 1);
+	} elsif ($cmd eq 'prev_active_tab') {
+		$root->make_current($root->{prev_active_tab});
 	} elsif ($cmd eq 'move_tab_left') {
 		$root->move_tab($tab, -1);
 	} elsif ($cmd eq 'move_tab_right') {
