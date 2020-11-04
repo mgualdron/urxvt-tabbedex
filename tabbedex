@@ -671,7 +671,7 @@ sub _tabbar_layout {
 		my $name = ($_ + 1);
 		if ( $tab->{name} ) {
 			if ( $root->{add_tab_index} ) {
-				$name = $name . '-' $tab->{name};
+				$name = $name . '-' . $tab->{name};
 			}
 			else {
 				$name = $tab->{name};
