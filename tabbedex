@@ -668,7 +668,15 @@ sub _tabbar_layout {
 		if ($tab == $root->{cur}) {
 			$cur_idx = $_;
 		}
-		my $name      = $tab->{name} || '' . ($_ + 1);
+		my $name = ($_ + 1);
+		if ( $tab->{name} ) {
+			if ( $root->{add_tab_index} ) {
+				$name = $name . '-' $tab->{name};
+			}
+			else {
+				$name = $tab->{name};
+			}
+		}
 		my $length    = length $name;
 		$total_full      += 3 + $length;
 		$total_truncated += 3 + ($length < $max ? $length : $max);
@@ -1066,6 +1074,7 @@ sub init {
    $root->{register_keysyms} = !$rs->bool('no-tabbedex-keys', 0);
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
+   $root->{add_tab_index}    = $rs->bool('add-tab-index', 0);
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
