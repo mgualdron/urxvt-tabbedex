@@ -246,6 +246,13 @@ terminals (tabs).  tabbedex plugin is implicitly added onto the list.
 
 If set, whenever last tab is destroyed a new one will be created.
 
+=item B<add-tab-index>: I<boolean>
+
+If set to true, the name of every tab will be displayed prefixed with its tab
+number.  This makes it easier to jump to a tab using the function keys.
+
+Note that the internal name of the tab does not include the number prefix.
+
 =item B<tabbar-timeouts>: I<string>
 
 When new text is written to an inactive tab, activity marks are displayed around
