@@ -1399,8 +1399,14 @@ use POSIX qw/tcgetpgrp/;
 
 
 sub enable_hooks {
-	for my $hook (qw(start destroy property_notify add_lines
-	                 bell osc_seq_perl)) {
+    my @hook_list;
+    if ( $_[0]{root}->{ignore_active_bot_lines} > 0 ) {
+        @hook_list = qw(start destroy property_notify line_update bell osc_seq_perl);
+    }
+    else {
+        @hook_list = qw(start destroy property_notify add_lines bell osc_seq_perl);
+    }
+	for my $hook (@hook_list) {
 		my $name = "urxvt::ext::tabbedex::root::tab_$hook";
 		$_[0]->enable($hook => sub {
 			unshift @_, $_[0]{root};
