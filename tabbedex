@@ -234,6 +234,7 @@ resources:
     URxvt.keysym.Meta-F10:      tabbedex:goto_tab_10
     URxvt.keysym.Meta-F11:      tabbedex:goto_tab_11
     URxvt.keysym.Meta-F12:      tabbedex:goto_tab_12
+    URxvt.keysym.Meta-Left:     tabbedex:prev_active_tab
 
 See I<ACTIONS AND USER COMMANDS> below for list of available actions.
 
@@ -351,6 +352,11 @@ makes I<Ctrl+T> start a new tab next to the current one.
 =item B<tabbedex:next_tab> and B<tabbedex:prev_tab>
 
 Switches to the tab on the right or left of the current tab.
+
+=item B<tabbedex:prev_active_tab>
+
+Switches to the previously active tab.  This is handy for jumping back and
+forth between two tabs.
 
 =item B<tabbedex:move_tab_left> and B<tabbedex:move_tab_right>
 
