@@ -267,6 +267,45 @@ As a deprecated feature, if a single character is given and it's (, [, { or <,
 matching closing brace will be used for right activity mark.  This is feature
 will be removed in the future.
 
+=item B<ignore-active-bot-lines>: I<number>
+
+If you wish to ignore activity coming from the bottom of an inactive tab, you
+can set the number of lines to ignore using this resource:
+
+    URxvt.tabbedex.ignore-active-bot-lines:   1
+
+This might be useful if the inactive tab is running L<screen(1)> and has a
+status line that includes a clock, which would cause the activity marks to
+show up on the inactive tab title after a minute or less.
+
+If set to L<1>, the botton-most line on the screen will be ignored, and the
+activity marks will only appear on an inactive tab for changes to other
+lines.  You can set this to the number of rows at the bottom of your terminal
+that you wish to ignore.
+
+If unspecified, the default setting for this resource is L<0>, which elicits
+the normally expected behavior of displaying activity marks on the title of
+an inactive tab for changes anywhere on that tab.
+
+Note that this setting applies to ALL inactive tabs. If you would like to
+apply it only to specific tabs, see the L<ignore-lines-tab-name-pattern>
+resource.
+
+=item B<ignore-lines-tab-name-pattern>: I<string>
+
+Specify a pattern (regular expression) that tab names need to match in order for the
+I<ignore-active-bot-lines> resource to apply to them.  The default value is:
+
+    URxvt.tabbedex.ignore-lines-tab-name-pattern:    .*
+
+Which matches ALL tab names, but if you set it something else, like for
+example:
+
+    URxvt.tabbedex.ignore-lines-tab-name-pattern:    ^_
+
+Then only tabs whose names begin with an underscore will have some of their
+active lines ignored by the I<ignore-active-bot-lines> resource.
+
 =item B<tabbed.tabbedex-rs-prefix>: I<string>
 
 A B<deprecated> alternative resource name prefix.  It's always specified with
@@ -1066,6 +1105,8 @@ sub init {
    $root->{register_keysyms} = !$rs->bool('no-tabbedex-keys', 0);
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
+   $root->{ignore_active_bot_lines} = $rs->text('ignore-active-bot-lines', 0) + 0;
+   $root->{ignore_lines_tab_name_pattern} = $rs->text('ignore-lines-tab-name-pattern', '.*');
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
@@ -1226,6 +1267,27 @@ sub tab_add_lines {
 		}
 	}
 	();
+}
+
+sub tab_line_update {
+    my ($root, $tab, $row) = @_;
+    # Only allow activity in rows above the ignored ones,
+    # for tabs whose names match the specified pattern:
+    if ($tab != $root->{cur}) {
+        my $regex = $root->{ignore_lines_tab_name_pattern};
+        if ( ( $tab->{name} =~ m/$regex/ &&
+               $row < ( $tab->nrow - $root->{ignore_active_bot_lines} ) ) ||
+             ( $tab->{name} !~ m/$regex/ ) ) {
+            my $now = urxvt::NOW;
+            my @pre = $root->tab_activity_marks($tab, $now);
+            $tab->{last_activity} = $now;
+            my @post = $root->tab_activity_marks($tab, $now);
+            if ($pre[0] ne $post[0] || $pre[1] ne $post[1]) {
+                $root->refresh($now);
+            }
+        }
+    }
+    ();
 }
 
 
