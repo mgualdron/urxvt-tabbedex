@@ -234,6 +234,7 @@ resources:
     URxvt.keysym.Meta-F10:      tabbedex:goto_tab_10
     URxvt.keysym.Meta-F11:      tabbedex:goto_tab_11
     URxvt.keysym.Meta-F12:      tabbedex:goto_tab_12
+    URxvt.keysym.Meta-Left:     tabbedex:prev_active_tab
 
 See I<ACTIONS AND USER COMMANDS> below for list of available actions.
 
@@ -391,6 +392,11 @@ makes I<Ctrl+T> start a new tab next to the current one.
 
 Switches to the tab on the right or left of the current tab.
 
+=item B<tabbedex:prev_active_tab>
+
+Switches to the previously active tab.  This is handy for jumping back and
+forth between two tabs.
+
 =item B<tabbedex:move_tab_left> and B<tabbedex:move_tab_right>
 
 Moves the current tab left or right.
@@ -510,6 +516,7 @@ sub register_keysyms {
 	$self->parse_keysym('Shift-Right', $prefix . ':next_tab');
 	$self->parse_keysym('Shift-Down', $prefix . ':new_tab');
 	$self->parse_keysym('Shift-Up', $prefix . ':rename_tab');
+	$self->parse_keysym('Meta-Left', $prefix . ':prev_active_tab');
 	$self->parse_keysym('Control-Left', $prefix . ':move_tab_left');
 	$self->parse_keysym('Control-Right', $prefix . ':move_tab_right');
 	for my $num (1..12) {
@@ -958,6 +965,7 @@ sub make_current {
 		if ($cur->is_being_renamed) {
 			return;
 		}
+        $root->{prev_active_tab} = $cur;
 		delete $cur->{last_activity};
 		$cur->{bell_ends} = 0;
 		$cur->XUnmapWindow ($cur->parent) if $cur->mapped;
@@ -1107,6 +1115,7 @@ sub init {
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
    $root->{ignore_active_bot_lines} = $rs->text('ignore-active-bot-lines', 0) + 0;
    $root->{ignore_lines_tab_name_pattern} = $rs->text('ignore-lines-tab-name-pattern', '.*');
+   $root->{prev_active_tab}  = 0; # Set this to the first tab on init.
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
@@ -1305,6 +1314,8 @@ sub tab_action {
 		$root->make_current(($tab->index + 1) % @{ $root->{tabs} });
 	} elsif ($cmd eq 'prev_tab') {
 		$root->make_current($tab->index - 1);
+	} elsif ($cmd eq 'prev_active_tab') {
+		$root->make_current($root->{prev_active_tab});
 	} elsif ($cmd eq 'move_tab_left') {
 		$root->move_tab($tab, -1);
 	} elsif ($cmd eq 'move_tab_right') {
