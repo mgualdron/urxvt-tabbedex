@@ -247,6 +247,13 @@ terminals (tabs).  tabbedex plugin is implicitly added onto the list.
 
 If set, whenever last tab is destroyed a new one will be created.
 
+=item B<add-tab-index>: I<boolean>
+
+If set to true, the name of every tab will be displayed prefixed with its tab
+number.  This makes it easier to jump to a tab using the function keys.
+
+Note that the internal name of the tab does not include the number prefix.
+
 =item B<tabbar-timeouts>: I<string>
 
 When new text is written to an inactive tab, activity marks are displayed around
@@ -714,7 +721,15 @@ sub _tabbar_layout {
 		if ($tab == $root->{cur}) {
 			$cur_idx = $_;
 		}
-		my $name      = $tab->{name} || '' . ($_ + 1);
+		my $name = ($_ + 1);
+		if ( $tab->{name} ) {
+			if ( $root->{add_tab_index} ) {
+				$name = $name . '-' . $tab->{name};
+			}
+			else {
+				$name = $tab->{name};
+			}
+		}
 		my $length    = length $name;
 		$total_full      += 3 + $length;
 		$total_truncated += 3 + ($length < $max ? $length : $max);
@@ -1116,6 +1131,7 @@ sub init {
    $root->{ignore_active_bot_lines} = $rs->text('ignore-active-bot-lines', 0) + 0;
    $root->{ignore_lines_tab_name_pattern} = $rs->text('ignore-lines-tab-name-pattern', '.*');
    $root->{prev_active_tab}  = 0; # Set this to the first tab on init.
+   $root->{add_tab_index}    = $rs->bool('add-tab-index', 0);
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
